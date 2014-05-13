@@ -5,9 +5,10 @@ var fs = require('fs');
 var program_name = process.argv[0]; //value will be "node"
 var script_path = process.argv[1]; //value will be "scriptname.js"
 var user_token = process.argv[2];
+var album_link = process.argv[3];
 
-if (user_token == null) {
-	console.log('use: node app.js your_token');
+if ( (user_token == null) || (album_link == null) ){
+	console.log('use: node app.js your_token album_link');
 	process.kill(process.pid, 'SIGTERM');
 }
 
@@ -29,9 +30,20 @@ var vk = new VK({
 });
 
 /* http://vk.com/album64702711_184525237 */
-var user_id = '26654103';
-var albom_id = '190458568'
-var out_folder = 'aira_beerhouse';
+var user_id;
+var albom_id;
+var out_folder;
+var result = album_link.match(/album(\d+)_(\d+)/);
+if (result != null) {
+	user_id = result[1];
+	albom_id = result[2];
+	out_folder = 'album' + albom_id + '_' + user_id;
+}
+else {
+	console.log('error: album_link is not correct');
+	process.kill(process.pid, 'SIGTERM');
+}
+
 
 /* make folder if it is not exist */
 if ( !fs.existsSync(out_folder) ) {
