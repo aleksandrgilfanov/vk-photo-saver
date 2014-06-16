@@ -33,7 +33,7 @@ var vk = new VK({
 var user_id;
 var albom_id;
 var out_folder;
-var result = album_link.match(/album(\d+)_(\d+)/);
+var result = album_link.match(/album(-*\d+)_(\d+)/);
 if (result != null) {
 	user_id = result[1];
 	albom_id = result[2];
@@ -56,7 +56,14 @@ if ( !fs.existsSync(out_folder) ) {
 
 vk.setToken( { token : user_token });
 
-vk.request('photos.get', {'uid' : user_id, 'aid' : albom_id});
+/* different logic for GROUP albums, and USER album */
+if (user_id[0] == '-')
+{
+  user_id = user_id.slice(1);
+  vk.request('photos.get', {'gid' : user_id, 'aid' : albom_id});
+}
+else
+  vk.request('photos.get', {'uid' : user_id, 'aid' : albom_id});
 
 var total_photos = 0;
 
@@ -66,6 +73,13 @@ vk.on('done:photos.get', function(_o) {
 
 	_o.response.forEach(function(item) {
 		var linkToPhoto = item.src_xxbig;
+
+		/* if we dont have extra big photo... */
+		if (linkToPhoto == undefined)
+			linkToPhoto = item.src_xbig;
+		if (linkToPhoto == undefined)
+			linkToPhoto = item.src_big;
+
 		var splittedLink = linkToPhoto.split('/');
 		var photoFileName = splittedLink[splittedLink.length-1];
 
